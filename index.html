@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>求生无限 · 无限流RPG</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- 标题画面 -->
+  <div id="title-screen" class="screen">
+    <div class="title-art"><img id="title-img" alt=""></div>
+    <div class="title-overlay">
+      <h1 class="game-title">求生无限</h1>
+      <p class="game-subtitle">— 无限流恐怖求生 RPG —</p>
+      <div class="title-menu">
+        <button class="btn primary" id="btn-new-game">新的轮回</button>
+        <button class="btn" id="btn-load-game">读取存档</button>
+        <button class="btn" id="btn-cheat-title" style="display:none">内置修改器</button>
+        <button class="btn ghost" id="btn-mute-title">🔊 音乐开</button>
+      </div>
+      <p class="title-tip">WASD/方向键移动 · 点击也可寻路 · 撞上怪物进入战斗</p>
+    </div>
+  </div>
+
+  <!-- 游戏主画面 -->
+  <div id="game-screen" class="screen hidden">
+    <header id="topbar">
+      <div id="level-chip"><span id="level-tag">关卡</span><div id="level-name">第一关</div></div>
+      <div id="stat-bars">
+        <div class="bar hp"><span class="bar-label">HP</span><div class="bar-track"><div class="bar-fill" id="hp-fill"></div></div><span class="bar-num" id="hp-num"></span></div>
+        <div class="bar san"><span class="bar-label">精神力</span><div class="bar-track"><div class="bar-fill" id="san-fill"></div></div><span class="bar-num" id="san-num"></span></div>
+        <div id="points"><span class="coin"></span><b id="points-num">0</b></div>
+        <div id="chip-time" title="本关剩余时间">⏱ <b id="time-num">--:--</b></div>
+        <div id="chip-explore" title="本关探索度">🗺 <b id="explore-num">0%</b></div>
+      </div>
+      <nav id="topnav">
+        <button class="nav-btn" id="btn-status" title="状态">📊</button>
+        <button class="nav-btn" id="btn-save" title="存档">💾</button>
+        <button class="nav-btn" id="btn-load" title="读档">📂</button>
+        <button class="nav-btn" id="btn-cheat" title="修改器" style="display:none">🛠️</button>
+        <button class="nav-btn" id="btn-mute" title="音乐">🔊</button>
+        <button class="nav-btn" id="btn-home" title="回标题">🏠</button>
+      </nav>
+    </header>
+
+    <main id="main-area">
+      <canvas id="map-canvas"></canvas>
+      <canvas id="minimap"></canvas>
+      <div id="interact-hint" class="hidden"></div>
+      <div id="joy-pad">
+        <button class="jbtn" data-dir="up">▲</button>
+        <button class="jbtn" data-dir="left">◀</button>
+        <button class="jbtn" data-dir="down">▼</button>
+        <button class="jbtn" data-dir="right">▶</button>
+      </div>
+      <div id="dialog-box" class="hidden">
+        <button id="dlg-skip" title="跳过剧情">跳过 ⏩</button>
+        <div id="dialog-img-wrap"><img id="dialog-img" alt=""></div>
+        <div id="dialog-text"></div>
+        <div id="dialog-options"></div>
+      </div>
+    </main>
+
+    <!-- 战斗层：RPG 对峙 -->
+    <div id="combat-layer" class="hidden">
+      <div id="battle-stage">
+        <canvas id="fx-canvas"></canvas>
+        <div id="hero-side">
+          <div class="fighter-card hero-card" id="hero-card">
+            <div class="fighter-img-wrap"><img id="hero-img" src="assets/hero_full.jpg" alt=""></div>
+            <div class="fighter-name">轮回者</div>
+            <div class="bar hp"><div class="bar-track"><div class="bar-fill" id="hero-hp-fill"></div></div><span class="bar-num" id="hero-hp-num"></span></div>
+            <div class="bar san"><div class="bar-track"><div class="bar-fill" id="hero-san-fill"></div></div><span class="bar-num" id="hero-san-num" title="精神力"></span></div>
+            <div class="ap-track"><div class="ap-fill" id="hero-ap-fill"></div></div>
+          </div>
+          <div id="ally-cards"></div>
+        </div>
+        <div id="vs-flash"></div>
+        <div id="enemy-side"><div id="enemy-cards"></div></div>
+      </div>
+      <div id="combat-log"></div>
+      <div id="combat-actions">
+        <button class="btn combat-btn" data-act="attack">⚔️ 攻击</button>
+        <button class="btn combat-btn" data-act="skill">✨ 技能</button>
+        <button class="btn combat-btn" data-act="item">🎒 道具</button>
+        <button class="btn combat-btn" data-act="defend">🛡️ 防御</button>
+        <button class="btn combat-btn" data-act="flee">🏃 逃跑</button>
+      </div>
+      <div id="combat-sub" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- 主神空间 -->
+  <div id="hub-screen" class="screen hidden">
+    <div id="hub-bg"><img id="hub-img" alt=""></div>
+    <div id="hub-panel">
+      <div id="god-row">
+        <img id="god-img" src="assets/god.jpg" alt="主神" title="主神商店">
+        <div id="god-side">
+          <h2>主神空间</h2>
+          <p id="hub-desc">光球悬浮在中央，无数光门环绕。点击光球开启主神商店，兑换强化后踏入下一扇门。</p>
+        </div>
+      </div>
+      <div id="hub-meta">
+        <div id="hub-points">积分：<b id="hub-points-num">0</b></div>
+        <div id="hub-grades" title="评级点：高级兑换专用"></div>
+        <div id="hub-time" title="本层停留剩余时间">⏱ <b id="hub-time-num">--:--</b>
+          <button class="time-btn" id="btn-ff30" title="跳过 30 分钟停留（店铺照常在经营结算）">⏩-30分</button>
+          <button class="time-btn" id="btn-extend" title="花费 200 积分购买 60 分钟停留时间">⏳+60分(200分)</button>
+        </div>
+      </div>
+      <div id="hub-systems">
+        <button class="sys-card" data-sys="shop"><b>🏪 主神商店</b><span>装备 / 道具 / 技能 / 血统职业 / 同伴 / 休整强化——点击主神光球也可进入</span></button>
+        <button class="sys-card" data-sys="event"><b>🚪 光门回廊</b><span>四处走走——偶遇轮回者、黑市商人与无主祭坛（消耗停留时间）</span></button>
+        <button class="sys-card" data-sys="room"><b>🛋️ 私人空间</b><span>装修你的房间——家具提供常驻加成，锻炼家具换永久属性；可购置多种房型</span></button>
+        <button class="sys-card" data-sys="street"><b>🏙️ 轮回者街区</b><span>开店经营——购入店铺摆上街道，进驻队友当店员按停留时间产积分</span></button>
+        <button class="sys-card" data-sys="garden"><b>🌿 灵植园</b><span>后山药圃——播种灵植，随停留时间生长，采收回春果/凝神花</span></button>
+        <button class="sys-card" data-sys="beast"><b>🦊 灵兽园</b><span>围栏牧场——养灵兽幼崽，游走吃草随停留时间长大，成熟点击收产出</span></button>
+        <button class="sys-card" data-sys="alchemy"><b>⚗️ 炼丹房</b><span>灵植入火成丹——回春丹/淬体丹/天运丹/九转金丹</span></button>
+        <button class="sys-card" data-sys="return"><b>🌀 重返副本</b><span>花积分重访已通关的世界，刷取积分 / 徽章 / 经验</span></button>
+        <button class="sys-card" data-sys="grade"><b>🎖️ 评级徽章</b><span>徽章余额、拆分兑换、各关最佳评级</span></button>
+        <button class="sys-card" data-sys="god"><b>💬 觐见主神</b><span>与这团巨大的白光对话</span></button>
+      </div>
+      <div id="hub-footer">
+        <button class="btn primary" id="btn-next-level">进入下一关</button>
+        <div id="quest-hint"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 系统整屏界面（左栏切换） -->
+  <div id="sys-screen" class="screen hidden">
+    <div id="sys-rail"></div>
+    <div id="sys-main"></div>
+  </div>
+
+  <!-- 通用弹窗 -->
+  <div id="modal" class="hidden">
+    <div id="modal-box">
+      <div id="modal-title"></div>
+      <div id="modal-body"></div>
+      <button class="btn" id="modal-close">关闭</button>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/data.js"></script>
+<script src="js/maps1_3.js"></script>
+<script src="js/maps4_7.js"></script>
+<script src="js/maps8_10.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>

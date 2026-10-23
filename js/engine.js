@@ -2151,7 +2151,9 @@ function renderEvents(box) {
   head.className = 'ev-card';
   head.innerHTML = `<h3>光门回廊</h3><p>兑换完装备，还可以在回廊里四下走走——每次走动随机遭遇一件事，消耗 <b>15 分钟</b>停留时间。<br>大多是寻常的邂逅，偶尔有意外之喜，极小概率撞上麻烦。有人在这里捡到了同伴。</p>`;
   const btn = document.createElement('button'); btn.className = 'btn primary';
-  btn.textContent = `四处走走（15 分钟）· 剩余 ${fmtTime(S.hubTime || 0)}`;
+  const lack = (S.hubTime || 0) < 15 && !(S.cheat && S.cheat.timeStop);
+  btn.disabled = lack;
+  btn.textContent = lack ? `停留时间不足（需 15 分钟，剩余 ${fmtTime(S.hubTime || 0)}）` : `四处走走（15 分钟）· 剩余 ${fmtTime(S.hubTime || 0)}`;
   btn.onclick = () => {
     if (!hubSpend(15)) return;
     const luck = 1 + (fmod().evLuck || 0) / 100;
@@ -2658,10 +2660,10 @@ function drawRoom(cv) {
     /* v46：挂件不再错切贴进墙面，画成立直挂在墙上的物件 + 壁面投影 */
     ctx.save();
     ctx.filter = 'blur(1.5px) brightness(0)'; ctx.globalAlpha = 0.22;
-    ctx.drawImage(im, px - dw / 2 + cs * 0.12, py - dh * 0.55 + cs * 0.16, dw, dh);
+    ctx.drawImage(im, px - dw / 2 + cs * 0.12, py - dh * 0.82 + cs * 0.16, dw, dh);
     ctx.restore();
     ctx.save(); ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(im, px - dw / 2, py - dh * 0.55, dw, dh); ctx.restore();
+    ctx.drawImage(im, px - dw / 2, py - dh * 0.82, dw, dh); ctx.restore();
   });
   /* 墙根踢脚线（两条缝） */
   ctx.strokeStyle = 'rgba(35,22,45,.85)'; ctx.lineWidth = Math.max(1.5, cs * 0.09);
